@@ -1,0 +1,786 @@
+*
+* CAOS2PRAY CHUNK
+*
+*# Pray-File "organhealth_mea.agents"
+*# DS-Name "Organ Health Tool"
+
+*# desc = "This is a tool that exports or kills your creatures when the health of one of their organs drops below a certain percentage.by Mea, coding by Pilla"
+*# Agent Animation File = "organexp2_mea.c16"
+*# Agent Sprite First Image = 5
+*# Agent Animation Gallery = "organexp2_mea"
+*# Web URL = "https://caosofthecreaturesrealm.wordpress.com/"
+*# Web Label = "CAOS of the Creatures Realm"
+
+*# attach organexp2_mea.c16 organexp_mea.catalogue
+
+
+new: comp 1 1 36471 "organexp2_mea" 15 23 9000
+attr 38
+tick 60
+* Percentage to take action
+sets ov99 "-1"
+** Toggle Camera to Event
+pat: butt 18 "organexp2_mea" 38 2 0 24 2 [] 1008 0
+setv ov18 0
+** Toggle Corpse Cleaning
+pat: butt 19 "organexp2_mea" 40 2 0 37 2 [] 1009 0
+setv ov19 0
+
+part 0
+frat 1
+anim [1 2 3 4 5 6 7 8 9 10 11 12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255]
+
+
+setv ov13 0
+setv ov14 0
+
+frel null
+flto 250 250
+
+* When a life event happens, check if you have to mvcamera
+scrp 1 1 36471 127
+	doif ov18 eq 1
+		setv va01 0
+		seta va02 null
+		inst
+		enum 1 2 25
+			doif posl gt va01
+				setv va01 posl
+				seta va02 targ
+			endi
+		next
+		slow
+
+* target the last event in the list
+		doif va02 ne null
+			targ va02
+* if the agent the event refers to is gone, use the initial camera.
+* Otherwise go to the agent coordinates.
+* location
+			doif ov00 = null
+				cmrp ov01 ov02 0
+			else
+				targ ov00
+				doif room targ ne -1 and carr ne game "c3_inventory"
+					cmrt 0
+
+					doif type ov00 = 7
+						targ ov00
+						norn ov00
+					endi
+				else
+					cmrp ov01 ov02 0
+				endi
+			endi
+			mesg writ ownr 1005
+		endi
+	endi
+endm
+
+scrp 1 1 36471 1008
+	doif ov18 eq 1
+		setv ov18 0
+	else
+		setv ov18 1
+	endi
+	part 18
+	pose ov18
+	mesg writ ownr 1005
+endm
+
+scrp 1 1 36471 1009
+	doif ov19 eq 1
+		setv ov19 0
+	else
+		setv ov19 1
+	endi
+	part 19
+	pose ov19
+	mesg writ ownr 1005
+endm
+
+scrp 1 1 36471 1
+	inst
+	doif part 6 eq 1
+		doif hotp eq 0
+			setv va00 1
+			inst
+			loop
+				pat: kill va00
+				addv va00 1
+			untl va00 gt 17
+		endi
+	else
+* Create the window
+* set screen x y positions rel to icon (va50 va51)
+		setv name "guiwinx" 29
+		subv name "guiwinx" 8
+		setv name "gwinx" name "guiwinx"
+		subv name "gwinx" 8
+		setv name "gwiny" 0
+		setv name "gcol0" 10
+		addv name "gcol0" name "gwinx"
+		setv name "gcol1" 31
+		addv name "gcol1" name "gwinx"
+		setv name "gcol2" 53
+		addv name "gcol2" name "gwinx"
+		setv name "gcol3" 77
+		addv name "gcol3" name "gwinx"
+		setv name "gcol4" 100
+		addv name "gcol4" name "gwinx"
+		setv name "gcol5" 122
+		addv name "gcol5" name "gwinx"
+		setv name "gcol6" 152
+		addv name "gcol6" name "gwinx"
+		setv name "gyoffset" 0
+		setv name "growh" 16
+		pat: dull 1 "organexp2_mea" 0 name "guiwinx" name "gwiny" -1
+
+*	pat: dull 1 "organexp2_mea" 0 -66 -0 1
+* Create the text
+* set x y posions
+		setv va52 name "gcol0"
+		addv va53 name "gyoffset"
+* Organ health tool
+		pat: fixd 2 "organexp2_mea" 1 va52 va53 2 "greyontranschars"
+* Min organ health
+		addv va53 name "growh"
+		pat: fixd 3 "organexp2_mea" 1 va52 va53 2 "whiteontransparentchars"
+		pat: text 17 "organexp2_mea" 7 143 16 3 1001 "whiteontransparentchars"
+* Auto export & autokill
+		addv va53 name "growh"
+		setv va52 name "gcol0"
+		setv va54 va53
+		addv va54 7
+		setv va55 va52
+		addv va55 10
+		pat: butt 13 "organexp2_mea" 2 3 va55 va54 2 [1] 1001 0
+		setv va52 name "gcol1"
+		pat: fixd 9 "organexp2_mea" 1 va52 va53 2 "whiteontransparentchars"
+		addv va53 name "growh"
+		setv va52 name "gcol0"
+		setv va54 va53
+		addv va54 7
+		setv va55 va52
+		addv va55 10
+		pat: butt 14 "organexp2_mea" 2 3 va55 va54 2 [1] 1001 0
+		setv va52 name "gcol1"
+		pat: fixd 10 "organexp2_mea" 1 va52 va53 2 "whiteontransparentchars"
+* Target creature
+		addv va53 name "growh"
+		setv va52 name "gcol0"
+		pat: fixd 4 "organexp2_mea" 1 va52 va53 2 "greyontranschars"
+* Organ: + Value
+		addv va53 name "growh"
+		pat: fixd 5 "organexp2_mea" 1 va52 va53 2 "whiteontransparentchars"
+		setv va52 name "gcol2"
+		pat: fixd 6 "organexp2_mea" 1 va52 va53 2 "whiteontransparentchars"
+* Health: + Value
+		setv va52 name "gcol3"
+		pat: fixd 7 "organexp2_mea" 1 va52 va53 2 "whiteontransparentchars"
+		setv va52 name "gcol5"
+		pat: fixd 8 "organexp2_mea" 1 va52 va53 2 "whiteontransparentchars"
+* Export and Kill
+		addv va53 name "growh"
+		setv va52 name "gcol0"
+		setv va54 va53
+		addv va54 7
+		setv va55 va52
+		addv va55 10
+		pat: butt 15 "organexp2_mea" 2 3 va55 va54 2 [1] 1001 0
+		setv va52 name "gcol1"
+		pat: fixd 11 "organexp2_mea" 1 va52 va53 2 "whiteontransparentchars"
+		addv va53 name "growh"
+		setv va52 name "gcol0"
+		setv va54 va53
+		addv va54 7
+		setv va55 va52
+		addv va55 10
+		pat: butt 16 "organexp2_mea" 2 3 va55 va54 2 [1] 1001 0
+		setv va52 name "gcol1"
+		pat: fixd 12 "organexp2_mea" 1 va52 va53 2 "whiteontransparentchars"
+
+* Create the buttons (scrp 1001)
+* Autoexport & autokill
+* Export & kill
+* Create the input box
+* Create the animation button to return to small mode (scrp 1002)
+*pat: butt 18 "organexp2_mea" 23 15 0 0 1 [] 1002 0
+
+* Set the part text
+		part 2
+		ptxt "Organ Health Tool"
+		part 3
+		ptxt "Min. organ health:   %"
+		part 4
+		ptxt "Target creature"
+		part 5
+		ptxt "Organ:"
+		part 7
+		ptxt "Health:"
+		part 9
+		ptxt "Auto Export"
+		part 10
+		ptxt "Auto Instakill"
+		part 11
+		ptxt "Export"
+		part 12
+		ptxt "Instakill"
+
+* Set the button base animation (it will return to this animation after hover)
+		part 13
+		anim [0]
+		doif ov13 eq 2
+			anim [2]
+		endi
+		part 14
+		anim [0]
+		doif ov14 eq 2
+			anim [2]
+		endi
+		part 15
+		anim [0]
+		part 16
+		anim [0]
+
+* Set focus to the input port
+		part 17
+		doif ov99 eq "-1"
+			fcus
+		else
+			ptxt ov99
+		endi
+
+* Animate the top part
+		part 0
+		frat 1
+		anim [1 2 3 4 5 6 7 8 9 10 11 12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255]
+
+* Set the text for the currently active norn
+		targ norn
+		doif targ ne null
+			setv va00 orgn
+			subv va00 1
+			setv va01 200
+			setv va02 0
+			loop
+				setv va03 orgf va02 6
+				doif va02 eq 0
+					divv va03 5000
+				else
+					divv va03 10000
+				endi
+				doif va03 lt va01
+					setv va01 va03
+					setv va04 va02
+				endi
+				addv va02 1
+			untl va02 ge va00
+			targ ownr
+			part 6
+			ptxt vtos va04
+			part 8
+			ptxt vtos ftoi va01
+		else
+			targ ownr
+			part 6
+			ptxt "-"
+			part 8
+			ptxt "-"
+		endi
+	endi
+	mesg writ ownr 1005
+endm
+
+
+scrp 1 1 36471 9
+	mesg writ ownr 1005
+endm
+scrp 1 1 36471 120
+	mesg writ ownr 1005
+endm
+
+
+scrp 1 1 36471 1005
+	inst
+* If the minimal % is set
+	doif ov99 ne "-1"
+
+* Check if any creatures have a low organ health
+		setv va98 200
+		seta va94 null
+		setv va19 ov19
+
+		enum 4 0 0
+			inst
+			doif targ ne null and dead ne 1
+				gsub getVariables
+				doif va01 lt va98
+					setv va98 va01
+					seta va94 targ
+				endi
+			elif targ ne null and dead eq 1
+				attr 0
+				bhvr 0
+				doif va19 eq 1
+
+					sets va12 gtos 0
+					seta va63 targ
+					setv va71 hist gnus va12
+					setv va72 hist gend va12
+					setv va83 hist finr va12 4 -1
+					doif va83 eq -1
+						setv va73 0
+					else
+						setv va73 hist cage va12 va83
+					endi
+* Set the face variant sprite
+					sets va76 face
+					setv va76 char va76 4
+					subv va76 'a'
+
+					setv va74 va76
+					lock
+					setv va00 posx
+					addv va00 rand -10 10
+					setv va01 posb
+					subv va01 40
+					subv va01 rand 0 50
+
+* Parameters to LIMB are:
+* 	body genus gender age variant
+					dbg: outv va71
+					dbg: outv va72
+					dbg: outv va73
+					dbg: outv va74
+					sets va10 limb 0 va71 va72 va73 va74
+					dbg: outs va10
+					setv va11 153
+					setv va41 tint 1
+					setv va42 tint 2
+					setv va43 tint 3
+					setv va44 tint 4
+					setv va45 tint 5
+					sets va13 hist name va12
+					doif va13 eq ""
+						sets va13 "?"
+					endi
+					sets va55 "Ghost of "
+					adds va55 va13
+					adds va55 "!"
+					kill targ
+
+					new: simp 2 20 36471 va10 1 va11 4000
+					seta ov99 va63
+					sets name "tooltip" va55
+					tino va41 va42 va43 va44 va45
+					mvsf va00 va01
+				endi
+				enum 1 1 56
+					kill targ
+				next
+			endi
+		next
+
+		targ ownr
+* Check if the lowest organ health is under the organ health specified
+		doif ftoi va98 lt stoi ov99
+* Check if a creature exists
+			doif va94 ne null
+				lock
+* If any of the options is selected
+				doif ov13 eq 2
+					targ ownr
+					part 0
+					frat 5
+					anim [14 13 14 13 14 13 14]
+					over
+					frat 1
+					anim [1 2 3 4 5 6 7 8 9 10 11 12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255]
+					gsub exportCreature
+					targ ownr
+				elif ov14 eq 2
+					targ ownr
+					part 0
+					frat 5
+					anim [14 13 14 13 14 13 14]
+					over
+					frat 1
+					anim [1 2 3 4 5 6 7 8 9 10 11 12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255]
+					gsub killCreature
+				else
+					targ ownr
+					part 0
+					frat 5
+					anim [14 13 255]
+				endi
+			endi
+		else
+			targ ownr
+			part 0
+			frat 1
+			anim [1 2 3 4 5 6 7 8 9 10 11 12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255]
+		endi
+		targ ownr
+** Case: when the screen is opened
+		doif part 6 eq 1
+* Set the text for the currently active norn
+			targ norn
+			gsub getVariables
+			targ ownr
+			doif va00 ne -1
+				part 6
+				ptxt vtos va04
+				part 8
+				ptxt vtos ftoi va01
+			else
+				part 6
+				ptxt "-"
+				part 8
+				ptxt "-"
+			endi
+		endi
+	endi
+
+	subr getVariables
+		doif targ ne null
+			setv va00 orgn
+			subv va00 1
+			setv va01 200
+			setv va02 0
+			loop
+				setv va03 orgf va02 6
+				doif va02 eq 0
+					divv va03 5000
+				else
+					divv va03 10000
+				endi
+				doif va03 lt va01
+					setv va01 va03
+					setv va04 va02
+				endi
+				addv va02 1
+			untl va02 ge va00
+		else
+			setv va00 -1
+		endi
+	retn
+
+** Autokill
+	subr killCreature
+		targ va94
+		doif targ ne null
+			dead
+		endi
+	retn
+
+** Autoexport
+	subr exportCreature
+		targ va94
+		doif targ ne null
+** Create life event
+			new: simp 1 2 25 "organexp2_mea" 1 42 8505
+			mesg wrt+ targ 36471 va94 0 0
+			inst
+			targ va94
+			seta va87 targ
+			zomb 1
+			pray refr
+
+			setv va10 posx
+			setv va11 posy
+			new: simp 1 1 43 "teleport" 9 11 5001
+			setv va12 wdth
+			setv va13 hght
+			divv va12 2
+			divv va13 2
+			negv va12
+			negv va13
+			addv va12 va10
+			addv va13 va11
+			subv va13 35
+			addv va12 10
+			mvto va12 va13
+			lock
+			wait 1
+			snde "tele"
+			anim [0 0 1 1 2 2 3 3 4 4 5 5 6 6]
+			over
+			inst
+			seta va12 targ
+			targ va87
+			doif targ = null
+				kill va12
+				stop
+			endi
+			zomb 0
+			sets name "Pray Extra Moniker" gtos 0
+
+** Save the moniker of the creature to an export log...
+			sets va98 gtos 0
+			sets va99 uppa game "user_of_this_world"
+			adds va99 read "Import Text" 14
+			file oope 1 va99 1
+			outs va98
+			file oclo
+
+** export the creature!
+			setv va00 pray expo "DSEX"
+
+			targ va12
+			kill targ
+		endi
+	retn
+
+endm
+
+** create custom death event (cuz stupid bug)
+
+* Ghost creation script
+scrp 2 20 36471 10
+	setv ov00 0
+	setv ov01 60
+	tick 100
+	alph ov01 1
+	velo 0 -0.04
+	stim sign 76 0.1
+	sway shou 10 0.1 0 0 0 0 0 0
+endm
+
+* Ghost tick
+scrp 2 20 36471 9
+	tick rand 80 130
+	sway shou 10 0.035 0 0 0 0 0 0
+	addv ov00 1
+	addv ov01 5
+	alph ov01 1
+	doif ov00 gt 18
+		kill ownr
+	endi
+endm
+
+
+** Recalculate current norn organ health
+scrp 1 1 36471 1000
+endm
+
+** Button clicked or text entered
+
+scrp 1 1 36471 1001
+* Auto export
+	doif _p1_ eq 13
+		part 13
+		doif ov13 ne 2
+			setv ov13 2
+			setv ov14 0
+			anim [2]
+		else
+			setv ov13 0
+			anim [0]
+		endi
+* Autokill
+	elif _p1_ eq 14
+		part 14
+		doif ov14 ne 2
+			setv ov14 2
+			setv ov13 0
+			anim [2]
+		else
+			setv ov14 0
+			anim [0]
+		endi
+* Export targ
+	elif _p1_ eq 15
+		targ norn
+		doif targ ne null
+			gsub exportCreature
+		endi
+		targ ownr
+
+* Kill targ
+	elif _p1_ eq 16
+		targ norn
+		doif targ ne null
+			inst
+			seta va95 targ
+			setv va99 plne
+			addv va99 2000
+			dead
+		endi
+	endi
+
+	targ ownr
+	part 17
+	sets ov99 ptxt
+	part 13
+	pose ov13
+	anms vtos ov13
+	part 14
+	pose ov14
+	anms vtos ov14
+
+	targ null
+	fcus
+
+
+	subr exportCreature
+		inst
+		seta va87 targ
+		zomb 1
+		pray refr
+		setv va10 posx
+		setv va11 posy
+
+** Create teleport animation
+
+		new: simp 1 1 43 "teleport" 9 11 5001
+		seta va85 targ
+		setv va12 wdth
+		setv va13 hght
+		divv va12 2
+		divv va13 2
+		negv va12
+		negv va13
+		addv va12 va10
+		addv va13 va11
+		subv va13 35
+		addv va12 10
+		mvto va12 va13
+		lock
+		wait 1
+		snde "tele"
+		anim [0 0 1 1 2 2 3 3 4 4 5 5 6 6]
+		over
+		anim [5 3 1]
+		inst
+		targ va87
+		doif targ = null
+			kill va87
+			stop
+		endi
+		zomb 0
+		sets name "Pray Extra Moniker" gtos 0
+** Save the moniker of the creature to an export log...
+		sets va98 gtos 0
+		sets va99 uppa game "user_of_this_world"
+		adds va99 read "Import Text" 14
+		file oope 1 va99 1
+		outs va98
+		file oclo
+** export the creature!
+		setv va00 pray expo "DSEX"
+		targ va87
+		doif targ ne null
+			kill targ
+		endi
+
+		targ va85
+		over
+		kill targ
+
+	retn
+endm
+
+** Export event creation
+
+scrp 1 2 25 36471
+	inst
+*To figure out where to stick your event icon, you have to first figure out
+*where the other icons are (so you can stick yours at the end). This bit of
+*code does just that-- it sets va10 to the x-position for your icon and va12 to..
+*something. I haven't fully investigated that yet.
+	setv va10 3
+	setv va12 0
+	enum 1 2 25
+		setv va11 posl
+		subv va11 wndl
+		doif va11 >= va10
+			setv va10 va11
+			addv va10 wdth
+			setv va12 ov99
+		endi
+	next
+
+*this is the standard setup for life events-- you should have to change 
+*any of these
+	clac 1000
+	attr 308
+	plne 9000
+	flto va10 90
+	seta va23 targ
+*this is... probably something to do with your place in the list
+	setv ov99 va12
+	doif ov99 > 0
+		tick 1
+	endi
+	setv ov98 0
+
+* 	set the tooltip
+*this part's easy-- set the tooltip that pops up when you mouse over the 
+*event icon here. Of course, you can build this from a creature's 'hist name gtos 0'
+*if you want to include that.
+	seta ov00 _p1_
+	seta va54 targ
+
+	targ ov00
+	doif targ ne null
+		sets va55 hist name gtos 0
+		adds va55 " was exported."
+	else
+		sets va55 "Someone was exported."
+	endi
+
+	targ va54
+	sets name "tooltip" va55
+
+** Do things with the norn variable
+	doif ov00 <> null
+		targ ov00
+		doif room targ = -1 or carr = game "c3_inventory"
+			setv va21 0
+			setv va22 0
+		else
+			setv va21 posx
+			setv va22 posy
+		endi
+	else
+		setv va21 0
+		setv va22 0
+	endi
+
+	targ va23
+	setv ov01 va21
+	setv ov02 va22
+
+*ov03 is the TYPE of event. You can pretty safely leave this 0 for custom events,
+*but you might want to assign it a number if you need to distinguish it at any
+*point. Currently used numbers are 7 (death), 11 (laid an egg), 3 (born),
+*and 8 (pregnancy) 
+	setv ov03 5
+
+*And this is just the script that makes the first event
+*'fall off' if there's too many.
+	setv va00 game "ds_number_of_life_events"
+	setv va01 totl 1 2 25
+	doif va01 gt va00
+		enum 1 2 25
+			tick 1
+			setv va51 posl
+			subv va51 wndl
+			subv va51 ov99
+			doif va51 < wdth
+				setv ov98 1
+			endi
+			addv ov99 wdth
+		next
+	endi
+endm
+
+
+rscr
+enum 1 1 36471
+	kill targ
+next
+enum 1 100 36471
+	kill targ
+next
