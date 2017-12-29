@@ -16,7 +16,7 @@
 
 new: comp 1 1 36471 "organexp2_mea" 15 23 9000
 attr 38
-tick 60
+tick 200
 * Percentage to take action
 sets ov99 "-1"
 ** Toggle Camera to Event
@@ -36,46 +36,6 @@ setv ov14 0
 
 frel null
 flto 250 250
-
-* When a life event happens, check if you have to mvcamera
-scrp 1 1 36471 127
-	doif ov18 eq 1
-		setv va01 0
-		seta va02 null
-		inst
-		enum 1 2 25
-			doif posl gt va01
-				setv va01 posl
-				seta va02 targ
-			endi
-		next
-		slow
-
-* target the last event in the list
-		doif va02 ne null
-			targ va02
-* if the agent the event refers to is gone, use the initial camera.
-* Otherwise go to the agent coordinates.
-* location
-			doif ov00 = null
-				cmrp ov01 ov02 0
-			else
-				targ ov00
-				doif room targ ne -1 and carr ne game "c3_inventory"
-					cmrt 0
-
-					doif type ov00 = 7
-						targ ov00
-						norn ov00
-					endi
-				else
-					cmrp ov01 ov02 0
-				endi
-			endi
-			mesg writ ownr 1005
-		endi
-	endi
-endm
 
 scrp 1 1 36471 1008
 	doif ov18 eq 1
@@ -303,116 +263,142 @@ endm
 
 scrp 1 1 36471 1005
 	inst
-* If the minimal % is set
-	doif ov99 ne "-1"
 
 * Check if any creatures have a low organ health
-		setv va98 200
-		seta va94 null
-		setv va19 ov19
-
-		enum 4 0 0
-			inst
-			doif targ ne null and dead ne 1
-				gsub getVariables
-				doif va01 lt va98
-					setv va98 va01
-					seta va94 targ
+	setv va98 200
+	seta va94 null
+	setv va19 ov19
+	inst
+	enum 4 0 0
+		doif targ ne null and dead ne 1
+			gsub getVariables
+			doif va01 lt va98
+				setv va98 va01
+				seta va94 targ
+			endi
+		elif targ ne null and dead eq 1
+			attr 0
+			bhvr 0
+			doif va19 eq 1
+** If the death cleaner is active, create a ghost
+				sets va12 gtos 0
+				seta va63 targ
+				setv va71 hist gnus va12
+				setv va72 hist gend va12
+				setv va83 hist finr va12 4 -1
+				doif va83 eq -1
+					setv va73 0
+				else
+					setv va73 hist cage va12 va83
 				endi
-			elif targ ne null and dead eq 1
-				attr 0
-				bhvr 0
-				doif va19 eq 1
-
-					sets va12 gtos 0
-					seta va63 targ
-					setv va71 hist gnus va12
-					setv va72 hist gend va12
-					setv va83 hist finr va12 4 -1
-					doif va83 eq -1
-						setv va73 0
-					else
-						setv va73 hist cage va12 va83
-					endi
 * Set the face variant sprite
-					sets va76 face
-					setv va76 char va76 4
-					subv va76 'a'
+				sets va76 face
+				setv va76 char va76 4
+				subv va76 'a'
 
-					setv va74 va76
-					lock
-					setv va00 posx
-					addv va00 rand -10 10
-					setv va01 posb
-					subv va01 40
-					subv va01 rand 0 50
+				setv va74 va76
+				lock
+				setv va00 posx
+				addv va00 rand -10 10
+				setv va01 posb
+				subv va01 40
+				subv va01 rand 0 50
 
 * Parameters to LIMB are:
 * 	body genus gender age variant
-					dbg: outv va71
-					dbg: outv va72
-					dbg: outv va73
-					dbg: outv va74
-					sets va10 limb 0 va71 va72 va73 va74
-					dbg: outs va10
-					setv va11 153
-					setv va41 tint 1
-					setv va42 tint 2
-					setv va43 tint 3
-					setv va44 tint 4
-					setv va45 tint 5
-					sets va13 hist name va12
-					doif va13 eq ""
-						sets va13 "?"
-					endi
-					sets va55 "Ghost of "
-					adds va55 va13
-					adds va55 "!"
-					kill targ
-
-					new: simp 2 20 36471 va10 1 va11 4000
-					seta ov99 va63
-					sets name "tooltip" va55
-					tino va41 va42 va43 va44 va45
-					mvsf va00 va01
+				sets va10 limb 0 va71 va72 va73 va74
+				setv va11 153
+				setv va41 tint 1
+				setv va42 tint 2
+				setv va43 tint 3
+				setv va44 tint 4
+				setv va45 tint 5
+				sets va13 hist name va12
+				doif va13 eq ""
+					sets va13 "?"
 				endi
+				sets va55 "Ghost of "
+				adds va55 va13
+				adds va55 "!"
+				kill targ
+
+* Create the ghost
+				new: simp 2 20 36471 va10 1 va11 4000
+				seta ov99 va63
+				sets ov98 va12
+				sets name "tooltip" va55
+				tino va41 va42 va43 va44 va45
+				mvsf va00 va01
+* Create the flame
+				targ ownr
+				new: simp 2 19 36471 "blueflame_mea" 5 0 4000
+				seta ov99 va63
+				sets ov98 va12
+				sets va55 "Soul flame of "
+				adds va55 va13
+				sets name "tooltip" va55
+				mvsf va00 va01
+
 				enum 1 1 56
 					kill targ
 				next
 			endi
-		next
 
-		targ ownr
+		endi
+	next
+
+	targ ownr
+* If the minimal % is set
+	doif ov99 ne "-1"
 * Check if the lowest organ health is under the organ health specified
 		doif ftoi va98 lt stoi ov99
 * Check if a creature exists
 			doif va94 ne null
-				lock
-* If any of the options is selected
+* If event tracker is activated
+				doif ov18 eq 1
+					targ va94
+					setv va31 posx
+					setv va32 posy
+					cmrp va31 va32 0
+				endi
+				targ ownr
+* If export setting is on
 				doif ov13 eq 2
 					targ ownr
 					part 0
 					frat 5
 					anim [14 13 14 13 14 13 14]
 					over
-					frat 1
+					doif va94 ne null
+						inst
+						gsub exportCreature
+						slow
+						targ ownr
+						part 0
+						frat 1
+					endi
 					anim [1 2 3 4 5 6 7 8 9 10 11 12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255]
-					gsub exportCreature
-					targ ownr
+* If kill setting is on
 				elif ov14 eq 2
 					targ ownr
 					part 0
 					frat 5
 					anim [14 13 14 13 14 13 14]
 					over
-					frat 1
+					doif va94 ne null
+						inst
+						gsub killCreature
+						slow
+						targ ownr
+						part 0
+						frat 1
+					endi
 					anim [1 2 3 4 5 6 7 8 9 10 11 12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255]
-					gsub killCreature
 				else
 					targ ownr
 					part 0
 					frat 5
-					anim [14 13 255]
+					anim [13 14 13 14 255]
 				endi
 			endi
 		else
@@ -421,6 +407,7 @@ scrp 1 1 36471 1005
 			frat 1
 			anim [1 2 3 4 5 6 7 8 9 10 11 12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255]
 		endi
+
 		targ ownr
 ** Case: when the screen is opened
 		doif part 6 eq 1
@@ -443,6 +430,7 @@ scrp 1 1 36471 1005
 	endi
 
 	subr getVariables
+		inst
 		doif targ ne null
 			setv va00 orgn
 			subv va00 1
@@ -468,6 +456,8 @@ scrp 1 1 36471 1005
 
 ** Autokill
 	subr killCreature
+		targ ownr
+		setv va30 ov18
 		targ va94
 		doif targ ne null
 			dead
@@ -476,11 +466,14 @@ scrp 1 1 36471 1005
 
 ** Autoexport
 	subr exportCreature
+		targ ownr
+		setv va30 ov18
 		targ va94
 		doif targ ne null
+
 ** Create life event
-			new: simp 1 2 25 "organexp2_mea" 1 42 8505
-			mesg wrt+ targ 36471 va94 0 0
+*				new: simp 1 2 25 "organexp2_mea" 1 42 8505
+*				mesg wrt+ targ 36471 va94 0 0
 			inst
 			targ va94
 			seta va87 targ
@@ -502,7 +495,6 @@ scrp 1 1 36471 1005
 			addv va12 10
 			mvto va12 va13
 			lock
-			wait 1
 			snde "tele"
 			anim [0 0 1 1 2 2 3 3 4 4 5 5 6 6]
 			over
@@ -534,29 +526,85 @@ scrp 1 1 36471 1005
 
 endm
 
+**
 ** create custom death event (cuz stupid bug)
+**
+**
+**
+** Spirit flame creation script
 
-* Ghost creation script
-scrp 2 20 36471 10
+scrp 2 19 36471 10
+	inst
+* attr: pickup 2 act 4 invi 16 collide 64 physics 128
+	core 0 48 0 27
+	attr 214
+	accg 0.8
+	aero 5
+	elas 0
+	fric 100
+	perm 100
+	enum 1 1 56
+		kill targ
+	next
+	slow
+	targ ownr
 	setv ov00 0
 	setv ov01 60
+	rnge 200
+	tick 3500
+	alph ov01 1
+	frat 10
+	anim [0 3 1 2 3 4 255]
+endm
+
+** Spirit flame click
+scrp 2 19 36471 1
+	sets va05 ov98
+	new: comp 1 2 23 "ds_creature_history" 32 0 8520
+	mesg wrt+ targ 1000 va05 1001 0
+endm
+
+** Spirit flame tick
+scrp 2 19 36471 9
+	kill ownr
+endm
+
+**
+** Ghost creation script
+
+scrp 2 20 36471 10
+	attr 4
+	inst
+	enum 1 1 56
+		kill targ
+	next
+	slow
+	targ ownr
+	setv ov00 0
+	setv ov01 60
+	rnge 200
 	tick 100
 	alph ov01 1
-	velo 0 -0.04
-	stim sign 76 0.1
-	sway shou 10 0.1 0 0 0 0 0 0
+	velo 0 -0.08
+	stim sign 76 0.08
+	sway shou 10 0.08 0 0 0 0 0 0
 endm
 
 * Ghost tick
 scrp 2 20 36471 9
-	tick rand 80 130
-	sway shou 10 0.035 0 0 0 0 0 0
+	tick rand 40 65
+	sway shou 10 0.02 0 0 0 0 0 0
 	addv ov00 1
 	addv ov01 5
 	alph ov01 1
-	doif ov00 gt 18
+	doif ov00 gt 25
 		kill ownr
 	endi
+endm
+
+* Ghost click
+scrp 2 20 36471 1
+	kill ownr
 endm
 
 
@@ -647,10 +695,11 @@ scrp 1 1 36471 1001
 		addv va12 10
 		mvto va12 va13
 		lock
-		wait 1
 		snde "tele"
+		lock
 		anim [0 0 1 1 2 2 3 3 4 4 5 5 6 6]
 		over
+		inst
 		anim [5 3 1]
 		inst
 		targ va87
@@ -675,7 +724,6 @@ scrp 1 1 36471 1001
 		endi
 
 		targ va85
-		over
 		kill targ
 
 	retn
@@ -784,3 +832,5 @@ next
 enum 1 100 36471
 	kill targ
 next
+
+scrx 1 2 25 36471
